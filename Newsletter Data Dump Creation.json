@@ -5,7 +5,7 @@
       "parameters": {
         "documentId": {
           "__rl": true,
-          "value": "1EEFcyItS4QHrpHy8mk0qknQ55aWqkbN5k5DKERf921s",
+          "value": "ID",
           "mode": "list",
           "cachedResultName": "Newsletter Dump",
           "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EEFcyItS4QHrpHy8mk0qknQ55aWqkbN5k5DKERf921s/edit?usp=drivesdk"
@@ -25,7 +25,7 @@
         },
         "options": {}
       },
-      "id": "af2bab06-2b13-4924-9c9f-c6b11dac3599",
+      "id": "ID",
       "name": "Read Config Sheet",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
@@ -45,7 +45,7 @@
       "parameters": {
         "jsCode": "const row = $input.first().json;\nconst rawDate = row.value || row.last_scraped_date || '2026-01-01';\nconst startDate = String(rawDate).split('T')[0];\nreturn [{ json: { start_date: startDate } }];"
       },
-      "id": "f7988ac8-62c3-4b46-bb0f-935e89902533",
+      "id": "ID",
       "name": "Set Start Date",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
