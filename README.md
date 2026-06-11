@@ -15,7 +15,7 @@ WF2: Newsletter Delta Check + AI Digest
 Google Sheets (unprocessed rows) → Claude via OpenRouter → Gmail digest → Mark processed
 ```
 
-**Google Sheet:** `Newsletter Dump` (ID: `1EEFcyItS4QHrpHy8mk0qknQ55aWqkbN5k5DKERf921s`)
+**Google Sheet:** `Newsletter Dump` (ID: `ID`)
 - Sheet tabs: `Newsletter_Dump`, `Config`
 
 ---
