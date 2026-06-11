@@ -1,0 +1,303 @@
+{
+  "name": "Newsletter Delta Check + AI Digest (Every 3-4 Days)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            },
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1,
+                3,
+                6
+              ],
+              "triggerAtHour": 1
+            }
+          ]
+        }
+      },
+      "id": "3d0825e4-17d5-4033-8376-55917a48399b",
+      "name": "Schedule Daily 11am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1EEFcyItS4QHrpHy8mk0qknQ55aWqkbN5k5DKERf921s",
+          "mode": "list",
+          "cachedResultName": "Newsletter Dump",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EEFcyItS4QHrpHy8mk0qknQ55aWqkbN5k5DKERf921s/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Newsletter_Dump"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "processed",
+              "lookupValue": "false"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8ad4cbee-f0d4-4677-990e-cfaa66494d9c",
+      "name": "Read Unprocessed Emails from Dump",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "gFHCIe3QxodFLCCc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════\n// EDIT THIS SECTION — your context and preferences\n// ═══════════════════════════════════════════════════\n\nconst MY_CONTEXT = {\n  name: 'Saswati Gorai',\n  role: 'Growth AI Strategist and Automation Specialist, Bangalore',\n  goal: 'Land GTM Engineer / Growth Architect / Automation Specialist role. Target: $5,000/month',\n\n\n  company: 'Building VysionAI — AI automation agency',\n  active_projects: [\n    'n8n self-hosted workflows on Hostinger VPS',\n    'Voice agent demo (Mona) via Millis AI',\n    'SaaS cost calculator on Bolt/Netlify',\n    'Reddit ICP research agent',\n    'Newsletter intelligence system (this workflow)'\n  ],\n  tools: 'n8n, Make.com, Clay, Apollo, HubSpot, OpenRouter, Claude, Bolt, Netlify, Canva',\n  interests: 'AI tools and use cases, GTM systems, PLG, outbound automation, lifecycle marketing, content systems, how companies hire GTM roles, SaaS trends, creator economy',\n  use_digest_for: 'Interview language, spotting relevant tools, content ideas, finding potential clients or collaborators',\n  background: '7 years Product Management at Axis Bank, MBA IIT Kharagpur, transitioned into growth marketing and AI automation'\n};\n\n// Days to look back — change this number freely\nconst DAYS_BACK = 10;\n\n// ═══════════════════════════════════════════════════\n// DO NOT EDIT BELOW THIS LINE\n// ═══════════════════════════════════════════════════\n\nconst cutoffDate = new Date();\ncutoffDate.setDate(cutoffDate.getDate() - DAYS_BACK);\n\nconst allRows = $input.all();\n\nconst recent = allRows.filter(function(item) {\n  const row = item.json;\n  if (!row.date) return false;\n  try { return new Date(row.date) >= cutoffDate; }\n  catch(e) { return true; }\n});\n\nif (recent.length === 0) {\n  return [{ json: { skip: true, reason: 'No emails in last ' + DAYS_BACK + ' days', email_count: 0, prompt: '', email_ids: [] } }];\n}\n\nconst blocks = recent.map(function(item, i) {\n  const e = item.json;\n  const body = (e.body || '').substring(0, 2000);\n  return 'EMAIL ' + (i+1) + ' | ' + e.date + ' | From: ' + e.sender + '\\nSubject: ' + e.subject + '\\n' + body;\n}).join('\\n\\n---\\n\\n');\n\nconst today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });\n\nconst prompt = 'You are a personal intelligence assistant for ' + MY_CONTEXT.name + ', ' + MY_CONTEXT.role + '.\\n\\n' +\n'CONTEXT:\\n' +\n'- Goal: ' + MY_CONTEXT.goal + '\\n' +\n'- Company: ' + MY_CONTEXT.company + '\\n' +\n'- Active projects: ' + MY_CONTEXT.active_projects.join(', ') + '\\n' +\n'- Tools: ' + MY_CONTEXT.tools + '\\n' +\n'- Interests: ' + MY_CONTEXT.interests + '\\n' +\n'- Uses this digest for: ' + MY_CONTEXT.use_digest_for + '\\n\\n' +\n'Below are ' + recent.length + ' emails from the last ' + DAYS_BACK + ' days. Analyse and produce a digest.\\n\\n' +\nblocks + '\\n\\n---\\n\\n' +\n'Write the digest in this exact format:\\n\\n' +\n'NEW AI TOOLS\\n' +\n'Each tool: name | what it does | why relevant to Saswati\\n\\n' +\n'GTM & GROWTH TRENDS\\n' +\n'Key insights on GTM, PLG, outbound, sales motion. Flag what she should mention in interviews.\\n\\n' +\n'HOW COMPANIES ARE RUNNING GTM\\n' +\n'Team structures, hiring signals, what is working right now.\\n\\n' +\n'AUTOMATION & WORKFLOW IDEAS\\n' +\n'Systems or workflows she could build as VysionAI offerings or portfolio pieces.\\n\\n' +\n'INTERVIEW & OUTREACH LANGUAGE\\n' +\n'Exact phrases and frameworks she should use with recruiters and clients.\\n\\n' +\n'CONTENT IDEAS\\n' +\n'3-5 content angles based on what is trending in these emails.\\n\\n' +\n'TOP SOURCES THIS ROUND\\n' +\n'Which newsletters had the most useful signal.\\n\\n' +\n'Be direct and specific. Tie everything to her goals. Today: ' + today;\n\nconst emailIds = recent.map(function(item) { return item.json.email_id; }).filter(Boolean);\n\nreturn [{ json: { prompt: prompt, email_count: recent.length, email_ids: emailIds, skip: false } }];"
+      },
+      "id": "04a7a8af-de6e-4957-8ea8-6d6bf3bf1620",
+      "name": "Context + Build Prompt — EDIT HERE",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-api-key",
+              "value": "key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"model\": \"anthropic/claude-haiku-4.5\", \"max_tokens\": 4096, \"messages\": [{ \"role\": \"user\", \"content\": $json.prompt }] } }}",
+        "options": {}
+      },
+      "id": "089c2c40-1563-4857-946c-32ef0d799b40",
+      "name": "Claude Generate Digest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "contact@vysionai.com",
+        "subject": "={{ \"VysionAI Digest — \" + new Date().toLocaleDateString(\"en-IN\",{day:\"numeric\",month:\"long\",year:\"numeric\"}) + \" (\" + $(\"Context + Build Prompt — EDIT HERE\").first().json.email_count + \" emails)\" }}",
+        "message": "=={{ \"<html><body style='font-family:Arial,sans-serif;max-width:700px;margin:0 auto;padding:20px'><h2 style='color:#4f46e5;border-bottom:2px solid #4f46e5;padding-bottom:8px'>VysionAI Intelligence Digest</h2><p style='background:#f5f5f5;padding:10px;border-radius:6px;font-size:13px;color:#666'>\" + new Date().toLocaleDateString(\"en-IN\",{day:\"numeric\",month:\"long\",year:\"numeric\"}) + \" | \" + $(\"Context + Build Prompt — EDIT HERE\").first().json.email_count + \" emails</p><pre style='white-space:pre-wrap;font-size:14px;line-height:1.8'>\" + ($json.choices[0].message.content || \"No content returned\").replace(/</g,\"&lt;\").replace(/>/g,\"&gt;\") + \"</pre><hr><p style='font-size:11px;color:#999'>Auto-generated by W2 · VysionAI</p></body></html>\" }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "be320241-d832-4c90-b81b-b4e52c9cf1ea",
+      "name": "Send Digest Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        960,
+        0
+      ],
+      "webhookId": "a5f83d0a-ef7f-4e77-9dd5-cdfbebf9dcd3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ab1Q0SaIWIwIUR86",
+          "name": "Gmail account VysionAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ids = $('Context + Build Prompt — EDIT HERE').first().json.email_ids || [];\nreturn ids.map(function(id) {\n  return { json: { email_id: id, processed: 'true' } };\n});"
+      },
+      "id": "eec0b09a-8f8a-46eb-88c5-2aa7f86d8ac7",
+      "name": "Prep Processed IDs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1EEFcyItS4QHrpHy8mk0qknQ55aWqkbN5k5DKERf921s",
+          "mode": "list",
+          "cachedResultName": "Newsletter Dump",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EEFcyItS4QHrpHy8mk0qknQ55aWqkbN5k5DKERf921s/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Newsletter_Dump"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email_id": "={{ $json.email_id }}",
+            "processed": "true"
+          },
+          "matchingColumns": [
+            "email_id"
+          ],
+          "schema": [
+            {
+              "id": "email_id",
+              "displayName": "email_id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed",
+              "displayName": "processed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a59c7426-6803-4822-b2c2-0052f508ef03",
+      "name": "Mark as Processed in Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1440,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "gFHCIe3QxodFLCCc",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Daily 11am": {
+      "main": [
+        [
+          {
+            "node": "Read Unprocessed Emails from Dump",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Unprocessed Emails from Dump": {
+      "main": [
+        [
+          {
+            "node": "Context + Build Prompt — EDIT HERE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Context + Build Prompt — EDIT HERE": {
+      "main": [
+        [
+          {
+            "node": "Claude Generate Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Generate Digest": {
+      "main": [
+        [
+          {
+            "node": "Send Digest Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Digest Email": {
+      "main": [
+        [
+          {
+            "node": "Prep Processed IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep Processed IDs": {
+      "main": [
+        [
+          {
+            "node": "Mark as Processed in Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "a9bd66bd-cdc2-4f6a-a327-4d978c143fac",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dff72ec769133a889f7c0cfa6daaba222e29e067ccfc0b03f97f3c1f0537be7f"
+  },
+  "id": "5PfouC5H3aHQxYp3",
+  "tags": []
+}
